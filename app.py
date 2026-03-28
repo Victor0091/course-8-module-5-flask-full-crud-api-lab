@@ -2,6 +2,21 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+# Root route
+@app.route("/", methods=["GET"])
+def root():
+    return jsonify({
+        "message": "Event Management API",
+        "endpoints": {
+            "GET /": "API information",
+            "GET /events": "List all events",
+            "GET /events/<id>": "Get single event",
+            "POST /events": "Create new event",
+            "PATCH /events/<id>": "Update event title",
+            "DELETE /events/<id>": "Delete event"
+        }
+    }), 200
+
 # Simulated data
 class Event:
     def __init__(self, id, title):
@@ -24,6 +39,19 @@ def get_event_by_id(event_id):
         if e.id == event_id:
             return e
     return None
+
+# Get all events
+@app.route("/events", methods=["GET"])
+def get_events():
+    return jsonify([e.to_dict() for e in events]), 200
+
+# Get single event
+@app.route("/events/<int:event_id>", methods=["GET"])
+def get_event(event_id):
+    evt = get_event_by_id(event_id)
+    if not evt:
+        return jsonify({"error": "Event not found"}), 404
+    return jsonify(evt.to_dict()), 200
 
 # TODO: Task 1 - Define the Problem
 # Create a new event from JSON input
