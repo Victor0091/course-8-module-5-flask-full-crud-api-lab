@@ -17,6 +17,14 @@ events = [
     Event(2, "Python Workshop")
 ]
 
+
+def get_event_by_id(event_id):
+    """Helper: return Event instance by id or None."""
+    for e in events:
+        if e.id == event_id:
+            return e
+    return None
+
 # TODO: Task 1 - Define the Problem
 # Create a new event from JSON input
 @app.route("/events", methods=["POST"])
@@ -26,7 +34,19 @@ def create_event():
     # TODO: Task 3 - Implement the Loop and Process Each Element
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON body"}), 400
+
+    title = data.get("title")
+    if not title or not isinstance(title, str):
+        return jsonify({"error": "'title' is required"}), 400
+
+    # Determine next id
+    next_id = max((e.id for e in events), default=0) + 1
+    new_event = Event(next_id, title)
+    events.append(new_event)
+    return jsonify(new_event.to_dict()), 201
 
 # TODO: Task 1 - Define the Problem
 # Update the title of an existing event
@@ -37,7 +57,20 @@ def update_event(event_id):
     # TODO: Task 3 - Implement the Loop and Process Each Element
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    evt = get_event_by_id(event_id)
+    if not evt:
+        return jsonify({"error": "Event not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid or missing JSON body"}), 400
+
+    title = data.get("title")
+    if not title or not isinstance(title, str):
+        return jsonify({"error": "'title' is required"}), 400
+
+    evt.title = title
+    return jsonify(evt.to_dict()), 200
 
 # TODO: Task 1 - Define the Problem
 # Remove an event from the list
@@ -48,7 +81,14 @@ def delete_event(event_id):
     # TODO: Task 3 - Implement the Loop and Process Each Element
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    evt = get_event_by_id(event_id)
+    if not evt:
+        return jsonify({"error": "Event not found"}), 404
+
+    # remove event
+    events.remove(evt)
+    # 204 No Content
+    return ("", 204)
 
 if __name__ == "__main__":
     app.run(debug=True)
